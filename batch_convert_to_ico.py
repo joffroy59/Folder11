@@ -69,7 +69,6 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                 # magick convert -background transparent <input> -resize <maximum_size>x<maximum_size> <output>
                 subprocess.run([
                     'magick',
-                    'convert',
                     '-background', 'transparent',
                     input['path'],
                     '-resize', f'{current_size}x{current_size}',
@@ -88,7 +87,6 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             # magick convert input-1.png input-2.png ... input-n.png output.ico
             subprocess.run([
                 'magick',
-                'convert',
                 '-background', 'transparent',]
                 + throughput_paths
                 + [output_path], 
