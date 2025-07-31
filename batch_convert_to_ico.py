@@ -2,6 +2,7 @@ import os
 from typing import Tuple, List, Dict
 import subprocess
 from pathlib import Path
+import sys
 
 def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256)):
     """
@@ -99,14 +100,14 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
 if __name__ == "__main__":
     # Input folder containing .svg files
-    input_folder:str = input("Input folder (leave blank for default): ")
-    # Output folder for converted .ico files
-    output_folder:str = input("Output folder (leave blank for default): ")
-    # List of icon sizes
-    sizes:List[int] = [s for s in map(int, input("Icon sizes (leave blank for default): ").split()) if s > 0]
-
-    input_folder = "svg/" if not input_folder else input_folder
-    output_folder = "../Folder-Ico/ico" if not output_folder else output_folder
-    sizes = [16, 32, 48, 64, 256] if not sizes else sizes
+    ask = "--ask" in sys.argv
+    if ask:
+        input_folder:str = input("Input folder (leave blank for default): ")
+        output_folder:str = input("Output folder (leave blank for default): ")
+        sizes:List[int] = [s for s in map(int, input("Icon sizes (leave blank for default): ").split()) if s > 0]
+    else:
+        input_folder = "svg/" if not input_folder else input_folder
+        output_folder = "../Folder-Ico/ico" if not output_folder else output_folder
+        sizes = [16, 32, 48, 64, 256] if not sizes else sizes
 
     convert_svg_to_ico(input_folder, output_folder)
