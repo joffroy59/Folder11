@@ -5,14 +5,13 @@
 </mask>
 <g mask="url(#mask0_574_6054)">
 <g filter="url(#filter0_f_574_6054)">
-<path d="M241 160C241 166.627 235.627 172 229 172H29C22.3726 172 17 166.627 17 160V86C17 79.3726 22.3726 74 29 74H92.79C97.7649 73.9999 102.605 72.3865 106.586 69.4023L116.46 62H229C235.627 62 241 67.3726 241 74V160Z" fill="black" fill-opacity="0.3"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M92.789 74C97.7642 74 102.605 72.3868 106.586 69.4024L116.459 62H229C235.627 62 241 67.3726 241 74V108V160C241 166.627 235.627 172 229 172H29C22.3726 172 17 166.627 17 160L17 108V86C17 79.3726 22.3726 74 29 74H87H92.789Z" fill="black" fill-opacity="0.3"/>
 </g>
 </g>
 <g filter="url(#filter1_ii_574_6054)">
-<path d="M241 198C241 204.627 235.627 210 229 210H29C22.3726 210 17 204.627 17 198V86C17 79.3726 22.3726 74 29 74H92.79C97.7649 73.9999 102.605 72.3865 106.586 69.4023L116.46 62H229C235.627 62 241 67.3726 241 74V198Z" fill="url(#paint2_linear_574_6054)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M92.789 74C97.7642 74 102.605 72.3868 106.586 69.4024L116.459 62H229C235.627 62 241 67.3726 241 74V108V198C241 204.627 235.627 210 229 210H29C22.3726 210 17 204.627 17 198L17 108V86C17 79.3726 22.3726 74 29 74H87H92.789Z" fill="url(#paint2_linear_574_6054)"/>
 </g>
 <rect x="112" y="84" width="108" height="108" fill="url(#pattern0_574_6054)"/>
-<rect x="112" y="84" width="108" height="108" fill="url(#pattern1_574_6054)"/>
 <defs>
 <filter id="filter0_f_574_6054" x="-20" y="25" width="298" height="184" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
@@ -34,9 +33,6 @@
 <feBlend mode="soft-light" in2="effect1_innerShadow_574_6054" result="effect2_innerShadow_574_6054"/>
 </filter>
 <pattern id="pattern0_574_6054" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image0_574_6054" transform="scale(0.0021097)"/>
-</pattern>
-<pattern id="pattern1_574_6054" patternContentUnits="objectBoundingBox" width="1" height="1">
 <use xlink:href="#image0_574_6054" transform="scale(0.0021097)"/>
 </pattern>
 <linearGradient id="paint0_linear_574_6054" x1="17" y1="34" x2="197.768" y2="215.142" gradientUnits="userSpaceOnUse">
