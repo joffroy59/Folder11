@@ -2,6 +2,7 @@ import os
 import sys
 from typing import Tuple, List, Dict
 import subprocess
+import time  # Import the time module
 from pathlib import Path
 
 def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256)):
@@ -54,8 +55,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         inputs.append({'path': os.path.join(input_folder, base_filename), 'maximum_size': sizes[-1]})
 
         # Step 1: Convert input.svg's to throughput.png's using Imagemagick
-        Path("temp_pngs").mkdir(parents=True, exist_ok=True)
-        throughput_paths:List[str] = [os.path.join("temp_pngs", f'{base_filename[:-4]}-{size_index}.png') for size_index in range(len(sizes))]
+        Path(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs").mkdir(parents=True, exist_ok=True)
+        time.sleep(1)
+        throughput_paths:List[str] = [os.path.join(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs", f'{base_filename[:-4]}-{size_index}.png') for size_index in range(len(sizes))]
         size_index:int = 0
         # print(inputs)
         input:Dict[str, int | str] = inputs.pop(0)
@@ -114,8 +116,11 @@ if __name__ == "__main__":
         # List of icon sizes
         sizes = [s for s in map(int, input("Icon sizes (leave blank for default): ").split()) if s > 0]
 
-    input_folder = "svg/" if not input_folder else input_folder
-    output_folder = "../Folder-Ico/ico" if not output_folder else output_folder
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+
+    input_folder = os.path.join(script_dir, "svg") if not input_folder else input_folder
+    output_folder = os.path.join(script_dir, "Folder-Ico","ico") if not output_folder else output_folder
     sizes = [16, 32, 48, 64, 256] if not sizes else sizes
 
     convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
