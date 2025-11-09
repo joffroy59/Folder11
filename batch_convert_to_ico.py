@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
 
     input_folder = os.path.join(script_dir, "svg") if not input_folder else input_folder
-    output_folder = os.path.join(script_dir, "Folder-Ico","ico") if not output_folder else output_folder
+    output_folder = os.path.join(script_dir, "..", "Folder-Ico","ico") if not output_folder else output_folder
     sizes = [16, 32, 48, 64, 256] if not sizes else sizes
 
     convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
