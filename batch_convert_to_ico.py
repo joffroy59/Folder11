@@ -97,7 +97,36 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         except subprocess.CalledProcessError as e:
             print(f"PNG2ICO: Error converting {base_filename}: {e}")
 
-    delete_folder("temp_pngs")
+    """ delete_folder("temp_pngs") """
+
+def git_commit_and_push(repo_path: str, message: str = "Update icons"):
+    """
+    Stages all changes, commits them, and pushes to the current branch.
+    """
+    try:
+        # Change directory to the repository path
+        original_cwd = os.getcwd()
+        os.chdir(repo_path)
+
+        print("--- Starting Git Sync ---")
+        # Add all files (including new icons)
+        subprocess.run(["git", "add", "."], check=True)
+        
+        # Commit changes (check if there's anything to commit first to avoid error)
+        status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
+        if status:
+            subprocess.run(["git", "commit", "-m", message], check=True)
+            # Push changes
+            subprocess.run(["git", "push"], check=True)
+            print("Successfully pushed changes to repository.")
+        else:
+            print("No changes to commit.")
+            
+        os.chdir(original_cwd)
+    except subprocess.CalledProcessError as e:
+        print(f"Git Error: {e}")
+    except Exception as e:
+        print(f"An error occurred during Git operations: {e}")
 
 if __name__ == "__main__":
 
@@ -122,4 +151,11 @@ if __name__ == "__main__":
     output_folder = os.path.join(script_dir, "..", "Folder-Ico","ico") if not output_folder else output_folder
     sizes = [16, 32, 48, 64, 256] if not sizes else sizes
 
-    convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
+    # 1. Run the conversion
+    # convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
+
+    # 2. Git Commit and Push
+    # We use script_dir as the base for the repo, or move up if the repo root is higher
+    repo_root = os.path.abspath(os.path.join(script_dir, "..")) 
+    git_commit_and_push(repo_root+'/Folder11', message=f"Auto-update svg source: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    git_commit_and_push(repo_root+'/Folder-Ico', message=f"Auto-update icons: {time.strftime('%Y-%m-%d %H:%M:%S')}")
