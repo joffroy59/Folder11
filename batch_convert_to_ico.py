@@ -152,7 +152,10 @@ if __name__ == "__main__":
     sizes = [16, 32, 48, 64, 256] if not sizes else sizes
 
     # 1. Run the conversion
-    # convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
+    try:
+        convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
+    except Exception as e:
+        print(f"WARNING occurred during Git operations: {e}")
 
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
