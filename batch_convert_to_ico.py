@@ -140,7 +140,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     """ delete_folder("temp_pngs") """
 
-def git_commit_and_push(repo_path: str, message: str = "Update icons"):
+def git_commit_and_push(repo_path: str, message: str | None = None):
     """
     Stages all changes, commits them, and pushes to the current branch.
     """
@@ -156,6 +156,44 @@ def git_commit_and_push(repo_path: str, message: str = "Update icons"):
         # Commit changes (check if there's anything to commit first to avoid error)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
         if status:
+            if message is None:
+                added, modified, deleted = [], [], []
+                for line in status.splitlines():
+                    # line format: XY Path. X is staged status.
+                    staged_status, path = line[0], line[3:].strip().strip('"')
+                    filename = os.path.basename(path)
+                    if staged_status in ('A', '?'): added.append(filename)
+                    elif staged_status == 'M': modified.append(filename)
+                    elif staged_status == 'D': deleted.append(filename)
+                    elif staged_status == 'R': modified.append(filename)
+
+                # Filter for icons
+                added_icons = [f for f in added if f.endswith(('.svg', '.ico'))]
+                modified_icons = [f for f in modified if f.endswith(('.svg', '.ico'))]
+                deleted_icons = [f for f in deleted if f.endswith(('.svg', '.ico'))]
+
+                if added_icons or modified_icons or deleted_icons:
+                    if len(added_icons) == 1 and not modified_icons and not deleted_icons:
+                        message = f"feat: add {added_icons[0]}"
+                    elif len(modified_icons) == 1 and not added_icons and not deleted_icons:
+                        message = f"feat: update {modified_icons[0]}"
+                    else:
+                        counts = []
+                        if added_icons: counts.append(f"add {len(added_icons)}")
+                        if modified_icons: counts.append(f"update {len(modified_icons)}")
+                        if deleted_icons: counts.append(f"remove {len(deleted_icons)}")
+                        message = f"feat: {', '.join(counts)} icons"
+                else:
+                    # Non-icon changes
+                    all_changed = added + modified + deleted
+                    if any(f.endswith('.md') for f in all_changed):
+                        message = "docs: update documentation"
+                    elif any('.github' in f for f in all_changed):
+                        message = "ci: update workflow"
+                    else:
+                        message = f"chore: update files {time.strftime('%Y-%m-%d')}"
+
+            print(f"Committing with message: {message}")
             subprocess.run(["git", "commit", "-m", message], check=True)
             # Push changes
             subprocess.run(["git", "push"], check=True)
@@ -202,5 +240,5 @@ if __name__ == "__main__":
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
     repo_root = os.path.abspath(os.path.join(script_dir, ".."))
-    git_commit_and_push(repo_root+'/Folder11', message=f"Auto-update svg source: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    git_commit_and_push(repo_root+'/Folder-Ico', message=f"Auto-update icons: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    git_commit_and_push(repo_root+'/Folder11')
+    git_commit_and_push(repo_root+'/Folder-Ico')
