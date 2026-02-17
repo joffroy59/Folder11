@@ -5,7 +5,7 @@ import subprocess
 import time  # Import the time mdodule
 from pathlib import Path
 
-def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256)):
+def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256), only_changed:bool=False):
     """
     Converts a folder of .svg icons to a folder of .ico icons of various sizes.
     Icons can be swapped based on a maximum size attributed to .svg icons, if their name ends with '-{size}px.svg'.
@@ -41,6 +41,39 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
     alt_filenames:List[str] = [filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and any([ends_with_px(filename[:-4].lower()) for s in sizes[:-1]])]
     print(f"Found {len(alt_filenames)} alternative SVG files: {alt_filenames}")
+
+    if only_changed:
+        try:
+            repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True).strip()
+
+            changed_paths = set()
+            # Check unstaged, staged, and untracked files
+            for cmd in [['git', 'diff', '--name-only'], ['git', 'diff', '--name-only', '--cached'], ['git', 'ls-files', '--others', '--exclude-standard']]:
+                output = subprocess.check_output(cmd, cwd=repo_root, text=True)
+                for line in output.splitlines():
+                    if line.strip():
+                        changed_paths.add(os.path.normpath(os.path.join(repo_root, line.strip())))
+
+            filtered_base = []
+            for base in base_filenames:
+                base_path = os.path.normpath(os.path.join(input_folder, base))
+                if base_path in changed_paths:
+                    filtered_base.append(base)
+                    continue
+
+                # Check if any variant is changed
+                for size in sizes:
+                    variant_name = base[:-4] + f'-{size}px.svg'
+                    if variant_name in alt_filenames:
+                        variant_path = os.path.normpath(os.path.join(input_folder, variant_name))
+                        if variant_path in changed_paths:
+                            filtered_base.append(base)
+                            break
+
+            print(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed.")
+            base_filenames = filtered_base
+        except Exception as e:
+            print(f"Warning: Failed to filter changed files: {e}")
 
     # Iterate through all base .svg files in the input folder
     for base_filename in base_filenames:
@@ -135,6 +168,7 @@ def git_commit_and_push(repo_path: str, message: str = "Update icons"):
 if __name__ == "__main__":
 
     ask = "--ask" in sys.argv
+    only_changed = "--changed" in sys.argv
 
     input_folder = None
     output_folder = None
@@ -157,7 +191,7 @@ if __name__ == "__main__":
 
     # 1. Run the conversion
     try:
-        convert_svg_to_ico(input_folder, output_folder, tuple(sizes))
+        convert_svg_to_ico(input_folder, output_folder, tuple(sizes), only_changed=only_changed)
     except Exception as e:
         print(f"WARNING occurred during Git operations: {e}")
 
