@@ -223,13 +223,13 @@ if __name__ == "__main__":
     ask = "--ask" in sys.argv
     only_changed = "--changed" in sys.argv
 
-    input_folder = None
+    input_folder_arg = None
     output_folder = None
     sizes = None
 
     if ask:
         # Input folder containing .svg files
-        input_folder = input("Input folder (leave blank for default): ")
+        input_folder_arg = input("Input folder (leave blank for default): ")
         # Output folder for converted .ico files
         output_folder = input("Output folder (leave blank for default): ")
         # List of icon sizes
@@ -237,16 +237,30 @@ if __name__ == "__main__":
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
+    input_folders = []
+    if input_folder_arg:
+        input_folders = [input_folder_arg]
+    else:
+        exclusion_list = ["svg_original"]
+        for item in sorted(os.listdir(script_dir)):
+            item_path = os.path.join(script_dir, item)
+            if os.path.isdir(item_path):
+                if item == "svg" or (item.startswith("svg_") and item not in exclusion_list):
+                    input_folders.append(item_path)
 
-    input_folder = os.path.join(script_dir, "svg") if not input_folder else input_folder
+        if not input_folders:
+            input_folders = [os.path.join(script_dir, "svg")]
+
     output_folder = os.path.join(script_dir, "..", "Folder-Ico","ico") if not output_folder else output_folder
     sizes = [16, 32, 48, 64, 256] if not sizes else sizes
 
     # 1. Run the conversion
-    try:
-        convert_svg_to_ico(input_folder, output_folder, tuple(sizes), only_changed=only_changed)
-    except Exception as e:
-        print(f"WARNING occurred during Git operations: {e}")
+    for input_folder in input_folders:
+        print(f"Processing folder: {input_folder}")
+        try:
+            convert_svg_to_ico(input_folder, output_folder, tuple(sizes), only_changed=only_changed)
+        except Exception as e:
+            print(f"WARNING occurred during processing {input_folder}: {e}")
 
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
