@@ -157,20 +157,32 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
         if status:
             if message is None:
-                added, modified, deleted = [], [], []
+                added_files, modified_files, deleted_files = [], [], []
+                all_changed_paths = []
+
                 for line in status.splitlines():
-                    # line format: XY Path. X is staged status.
-                    staged_status, path = line[0], line[3:].strip().strip('"')
+                    staged_status = line[0]
+                    path_info = line[3:].strip().strip('"')
+
+                    path = path_info
+                    if staged_status == 'R':
+                        # git status --porcelain format for rename is: R  new/path -> old/path
+                        path = path_info.split(' -> ')[0]
+
+                    all_changed_paths.append(path)
                     filename = os.path.basename(path)
-                    if staged_status in ('A', '?'): added.append(filename)
-                    elif staged_status == 'M': modified.append(filename)
-                    elif staged_status == 'D': deleted.append(filename)
-                    elif staged_status == 'R': modified.append(filename)
+
+                    if staged_status == 'A':
+                        added_files.append(filename)
+                    elif staged_status in ('M', 'R'):
+                        modified_files.append(filename)
+                    elif staged_status == 'D':
+                        deleted_files.append(filename)
 
                 # Filter for icons
-                added_icons = [f for f in added if f.endswith(('.svg', '.ico'))]
-                modified_icons = [f for f in modified if f.endswith(('.svg', '.ico'))]
-                deleted_icons = [f for f in deleted if f.endswith(('.svg', '.ico'))]
+                added_icons = [f for f in added_files if f.endswith(('.svg', '.ico'))]
+                modified_icons = [f for f in modified_files if f.endswith(('.svg', '.ico'))]
+                deleted_icons = [f for f in deleted_files if f.endswith(('.svg', '.ico'))]
 
                 if added_icons or modified_icons or deleted_icons:
                     if len(added_icons) == 1 and not modified_icons and not deleted_icons:
@@ -185,10 +197,9 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
                         message = f"feat: {', '.join(counts)} icons"
                 else:
                     # Non-icon changes
-                    all_changed = added + modified + deleted
-                    if any(f.endswith('.md') for f in all_changed):
+                    if any(p.endswith('.md') for p in all_changed_paths):
                         message = "docs: update documentation"
-                    elif any('.github' in f for f in all_changed):
+                    elif any('.github' in p for p in all_changed_paths):
                         message = "ci: update workflow"
                     else:
                         message = f"chore: update files {time.strftime('%Y-%m-%d')}"
