@@ -19,7 +19,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     def ends_with_px(string:str) -> bool:
         if not string.endswith('px'): return False
-        parts:Tuple[str, ...] = string.rsplit('-', 1)
+        parts:Tuple[str, ...] = string.rsplit('#', 1)
         if len(parts) != 2: return False
         return parts[1][:-2].isdigit()
 
@@ -256,9 +256,9 @@ if __name__ == "__main__":
 
     # 1. Run the conversion
     for input_folder in input_folders:
-        print(f"\n{'-'*50}")
-        print(f"Processing folder: {input_folder}")
-        print(f"{'-'*50}")
+        print(f"\n{'#'*80}")
+        print(f"# Processing folder: {input_folder}")
+        print(f"{'#'*80}")
         try:
             convert_svg_to_ico(input_folder, output_folder, tuple(sizes), only_changed=only_changed)
         except Exception as e:
