@@ -33,18 +33,18 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     sizes = sorted(sizes)
 
-    base_filenames:List[str] = [filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
-        and not any([ends_with_px(filename[:-4].lower()) for s in sizes])]
+    base_filenames:List[str] = sorted([filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
+        and not any([ends_with_px(filename[:-4].lower()) for s in sizes])])
     # log base_filenames
     print(f"Found {len(base_filenames)} base SVG files.")
     if base_filenames:
-        print(f" - {', '.join(base_filenames)}")
+        print(" - " + "\n - ".join(base_filenames))
 
-    alt_filenames:List[str] = [filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
-        and any([ends_with_px(filename[:-4].lower()) for s in sizes[:-1]])]
+    alt_filenames:List[str] = sorted([filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
+        and any([ends_with_px(filename[:-4].lower()) for s in sizes[:-1]])])
     print(f"Found {len(alt_filenames)} alternative SVG files.")
     if alt_filenames:
-        print(f" - {', '.join(alt_filenames)}")
+        print(" - " + "\n - ".join(alt_filenames))
 
     if only_changed:
         try:
