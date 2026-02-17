@@ -256,7 +256,9 @@ if __name__ == "__main__":
 
     # 1. Run the conversion
     for input_folder in input_folders:
+        print(f"\n{'-'*50}")
         print(f"Processing folder: {input_folder}")
+        print(f"{'-'*50}")
         try:
             convert_svg_to_ico(input_folder, output_folder, tuple(sizes), only_changed=only_changed)
         except Exception as e:
