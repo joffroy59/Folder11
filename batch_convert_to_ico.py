@@ -2,7 +2,7 @@ import os
 import sys
 from typing import Tuple, List, Dict
 import subprocess
-import time  # Import the time module
+import time  # Import the time mdodule
 from pathlib import Path
 
 def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256)):
@@ -35,8 +35,12 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     base_filenames:List[str] = [filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and not any([ends_with_px(filename[:-4].lower()) for s in sizes])]
+    # log base_filenames
+    print(f"Found {len(base_filenames)} base SVG files: {base_filenames}")
+
     alt_filenames:List[str] = [filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and any([ends_with_px(filename[:-4].lower()) for s in sizes[:-1]])]
+    print(f"Found {len(alt_filenames)} alternative SVG files: {alt_filenames}")
 
     # Iterate through all base .svg files in the input folder
     for base_filename in base_filenames:
@@ -111,7 +115,7 @@ def git_commit_and_push(repo_path: str, message: str = "Update icons"):
         print("--- Starting Git Sync ---")
         # Add all files (including new icons)
         subprocess.run(["git", "add", "."], check=True)
-        
+
         # Commit changes (check if there's anything to commit first to avoid error)
         status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True).stdout
         if status:
@@ -121,7 +125,7 @@ def git_commit_and_push(repo_path: str, message: str = "Update icons"):
             print("Successfully pushed changes to repository.")
         else:
             print("No changes to commit.")
-            
+
         os.chdir(original_cwd)
     except subprocess.CalledProcessError as e:
         print(f"Git Error: {e}")
@@ -159,6 +163,6 @@ if __name__ == "__main__":
 
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
-    repo_root = os.path.abspath(os.path.join(script_dir, "..")) 
+    repo_root = os.path.abspath(os.path.join(script_dir, ".."))
     git_commit_and_push(repo_root+'/Folder11', message=f"Auto-update svg source: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     git_commit_and_push(repo_root+'/Folder-Ico', message=f"Auto-update icons: {time.strftime('%Y-%m-%d %H:%M:%S')}")
