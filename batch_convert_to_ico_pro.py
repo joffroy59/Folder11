@@ -46,7 +46,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
     if alt_filenames:
         print(" - " + "\n - ".join(alt_filenames))
 
+    print(f"only_changed: {only_changed}")
     if only_changed:
+        print("Filtering for changed files...")
         try:
             repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True).strip()
 
@@ -77,11 +79,13 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             print(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed.")
             base_filenames = filtered_base
         except Exception as e:
+            print(f"repo_root: {repo_root}")
             print(f"Warning: Failed to filter changed files: {e}")
 
     # Iterate through all base .svg files in the input folder
     for base_filename in base_filenames:
-        # print(base_filename)
+        print(f"Processing {base_filename}...")
+
         inputs:List[Dict[str, int | str]] = []
 
         for size in sizes:
