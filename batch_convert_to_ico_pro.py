@@ -130,6 +130,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         Path(output_folder).mkdir(parents=True, exist_ok=True)
         output_filename:str = os.path.splitext(base_filename)[0] + '.ico'
         output_path:str = os.path.join(output_folder, output_filename)
+        # log variable output_filename and output_path
+        print(f"output_filename: {output_filename}, output_path: {output_path}")
+
         try:
             # magick convert input-1.png input-2.png ... input-n.png output.ico
             subprocess.run([
