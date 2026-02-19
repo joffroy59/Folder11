@@ -116,6 +116,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             print(f"input[{size_index=}] {input}")
             current_size:int = sizes[size_index]
             throughput_path:str = throughput_paths[size_index]
+            print(f"current_size: {current_size}, throughput_path: {throughput_path}")
             try:
                 # magick convert -background transparent <input> -resize <maximum_size>x<maximum_size> <output>
                 subprocess.run([
@@ -125,7 +126,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                     '-resize', f'{current_size}x{current_size}',
                     throughput_path
                 ], check=True)
-                # print(f"Converted {base_filename} to {throughput_path}")
+                print(f"Converted {base_filename} to {throughput_path}")
             except subprocess.CalledProcessError as e:
                 print(f"SVG2PNG: Error converting {base_filename}: {e}")
             size_index += 1
