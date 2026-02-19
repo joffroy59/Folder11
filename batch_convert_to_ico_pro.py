@@ -105,13 +105,15 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         Path(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs").mkdir(parents=True, exist_ok=True)
         throughput_paths:List[str] = [os.path.join(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs", f'{base_filename[:-4]}-{size_index}.png') for size_index in range(len(sizes))]
         size_index:int = 0
-        print(inputs)
+        print(f"inputs {inputs}")
         input:Dict[str, int | str] = inputs.pop(0)
+        print(f"input {input}")
         for size_index in range(len(sizes)):
             # Go to next input if the current needed size is greater than input's maximum
             if sizes[size_index] > input['maximum_size']:
                 input:Dict[str, int | str] = inputs.pop(0)
             # print(input)
+            print(f"input[{size_index=}] {input}")
             current_size:int = sizes[size_index]
             throughput_path:str = throughput_paths[size_index]
             try:
@@ -129,6 +131,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             size_index += 1
 
         # Step 2: Combine throughput.png's to final output.ico using Imagemagick
+        print(f"output_folder: {output_folder}")
         Path(output_folder).mkdir(parents=True, exist_ok=True)
         output_filename:str = os.path.splitext(base_filename)[0] + '.ico'
         output_path:str = os.path.join(output_folder, output_filename)
