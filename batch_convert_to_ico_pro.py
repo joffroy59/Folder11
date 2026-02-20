@@ -236,6 +236,15 @@ if __name__ == "__main__":
     ask = "--ask" in sys.argv
     only_changed = "--changed" in sys.argv
 
+    strict_folder = None
+    if "--strict" in sys.argv:
+        try:
+            idx = sys.argv.index("--strict")
+            strict_folder = sys.argv[idx + 1]
+        except IndexError:
+            print("Error: --strict requires a folder argument")
+            sys.exit(1)
+
     input_folder_arg = None
     output_folder = None
     sizes = None
@@ -251,7 +260,17 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     input_folders = []
-    if input_folder_arg:
+    if strict_folder:
+        target_path = strict_folder
+        if not os.path.isabs(target_path):
+            target_path = os.path.join(script_dir, target_path)
+        
+        if os.path.isdir(target_path):
+            input_folders = [target_path]
+        else:
+            print(f"Error: The directory '{target_path}' does not exist.")
+            sys.exit(1)
+    elif input_folder_arg:
         input_folders = [input_folder_arg]
     else:
         exclusion_list = ["svg_original"]
