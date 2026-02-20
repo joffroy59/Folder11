@@ -254,7 +254,7 @@ if __name__ == "__main__":
     if input_folder_arg:
         input_folders = [input_folder_arg]
     else:
-        exclusion_list = ["svg_original"]
+        exclusion_list = []
         for item in sorted(os.listdir(script_dir)):
             item_path = os.path.join(script_dir, item)
             if os.path.isdir(item_path):
