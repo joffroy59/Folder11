@@ -272,8 +272,17 @@ if __name__ == "__main__":
         print(f"\n{'#'*80}")
         print(f"# Processing folder: {input_folder}")
         print(f"{'#'*80}")
+
+        current_output_folder = output_folder
+
+        # If we are in batch mode (no specific input arg), dynamically determine output folder
+        if input_folder_arg is None:
+            folder_name = os.path.basename(input_folder)
+            target_dir_name = folder_name.replace("svg", "ico", 1)
+            current_output_folder = os.path.join(script_dir, "..", "Folder-Ico", target_dir_name)
+
         try:
-            convert_svg_to_ico(input_folder, output_folder, tuple(sizes), only_changed=only_changed)
+            convert_svg_to_ico(input_folder, current_output_folder, tuple(sizes), only_changed=only_changed)
         except Exception as e:
             print(f"WARNING occurred during processing {input_folder}: {e}")
 
