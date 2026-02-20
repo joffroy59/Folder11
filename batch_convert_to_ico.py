@@ -273,7 +273,7 @@ if __name__ == "__main__":
 
     # 1. Run the conversion
     for input_folder in input_folders:
-        logging.info(f"\n{'#'*80}")
+        logging.info(f"{'#'*80}")
         logging.info(f"# Processing folder: {input_folder}")
         logging.info(f"{'#'*80}")
 
@@ -289,6 +289,8 @@ if __name__ == "__main__":
             convert_svg_to_ico(input_folder, current_output_folder, tuple(sizes), only_changed=only_changed)
         except Exception as e:
             logging.warning(f"WARNING occurred during processing {input_folder}: {e}")
+
+    logging.info(f"\n")
 
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
