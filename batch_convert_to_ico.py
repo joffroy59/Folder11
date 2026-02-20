@@ -1,9 +1,13 @@
 import os
 import sys
+import logging
 from typing import Tuple, List, Dict
 import subprocess
 import time  # Import the time mdodule
 from pathlib import Path
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256), only_changed:bool=False):
     """
@@ -36,19 +40,19 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
     base_filenames:List[str] = sorted([filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and not any([ends_with_px(filename[:-4].lower()) for s in sizes])])
     # log base_filenames
-    print(f"Found {len(base_filenames)} base SVG files.")
+    logging.info(f"Found {len(base_filenames)} base SVG files.")
     if base_filenames:
-        print(" - " + "\n - ".join(base_filenames))
+        logging.debug(" - " + "\n - ".join(base_filenames))
 
     alt_filenames:List[str] = sorted([filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and any([ends_with_px(filename[:-4].lower()) for s in sizes[:-1]])])
-    print(f"Found {len(alt_filenames)} alternative SVG files.")
+    logging.info(f"Found {len(alt_filenames)} alternative SVG files.")
     if alt_filenames:
-        print(" - " + "\n - ".join(alt_filenames))
+        logging.debug(" - " + "\n - ".join(alt_filenames))
 
-    print(f"only_changed: {only_changed}")
+    logging.info(f"only_changed: {only_changed}")
     if only_changed:
-        print("Filtering for changed files...")
+        logging.info("Filtering for changed files...")
         try:
             repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True).strip()
 
@@ -76,23 +80,23 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                             filtered_base.append(base)
                             break
 
-            print(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed.")
+            logging.info(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed.")
             base_filenames = filtered_base
         except Exception as e:
-            print(f"repo_root: {repo_root}")
-            print(f"Warning: Failed to filter changed files: {e}")
+            logging.debug(f"repo_root: {repo_root}")
+            logging.warning(f"Failed to filter changed files: {e}")
 
     # Iterate through all base .svg files in the input folder
     for base_filename in base_filenames:
-        print(f"Processing {base_filename}...")
+        logging.info(f"Processing {base_filename}...")
 
         inputs:List[Dict[str, int | str]] = []
 
         for size in sizes:
-            print(f"Processing size: {size}")
+            logging.debug(f"Processing size: {size}")
             assumed_filename:str = base_filename[:-4] + f'-{size}px.svg'
             if assumed_filename not in alt_filenames: continue
-            print(f"assumed_filename: {assumed_filename}")
+            logging.debug(f"assumed_filename: {assumed_filename}")
 
             alt_input_path:str = os.path.join(input_folder, assumed_filename)
 
@@ -105,18 +109,18 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         Path(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs").mkdir(parents=True, exist_ok=True)
         throughput_paths:List[str] = [os.path.join(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs", f'{base_filename[:-4]}-{size_index}.png') for size_index in range(len(sizes))]
         size_index:int = 0
-        print(f"inputs {inputs}")
+        logging.debug(f"inputs {inputs}")
         input:Dict[str, int | str] = inputs.pop(0)
-        print(f"input {input}")
+        logging.debug(f"input {input}")
         for size_index in range(len(sizes)):
             # Go to next input if the current needed size is greater than input's maximum
             if sizes[size_index] > input['maximum_size']:
                 input:Dict[str, int | str] = inputs.pop(0)
             # print(input)
-            print(f"input[{size_index=}] {input}")
+            logging.debug(f"input[{size_index=}] {input}")
             current_size:int = sizes[size_index]
             throughput_path:str = throughput_paths[size_index]
-            print(f"current_size: {current_size}, throughput_path: {throughput_path}")
+            logging.debug(f"current_size: {current_size}, throughput_path: {throughput_path}")
             try:
                 # magick convert -background transparent <input> -resize <maximum_size>x<maximum_size> <output>
                 subprocess.run([
@@ -126,18 +130,18 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                     '-resize', f'{current_size}x{current_size}',
                     throughput_path
                 ], check=True)
-                print(f"Converted {base_filename} to {throughput_path}")
+                logging.info(f"Converted {base_filename} to {throughput_path}")
             except subprocess.CalledProcessError as e:
-                print(f"SVG2PNG: Error converting {base_filename}: {e}")
+                logging.error(f"SVG2PNG: Error converting {base_filename}: {e}")
             size_index += 1
 
         # Step 2: Combine throughput.png's to final output.ico using Imagemagick
-        print(f"output_folder: {output_folder}")
+        logging.debug(f"output_folder: {output_folder}")
         Path(output_folder).mkdir(parents=True, exist_ok=True)
         output_filename:str = os.path.splitext(base_filename)[0] + '.ico'
         output_path:str = os.path.join(output_folder, output_filename)
         # log variable output_filename and output_path
-        print(f"output_filename: {output_filename}, output_path: {output_path}")
+        logging.debug(f"output_filename: {output_filename}, output_path: {output_path}")
 
         try:
             # magick convert input-1.png input-2.png ... input-n.png output.ico
@@ -147,9 +151,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                 + throughput_paths
                 + [output_path],
                 check=True)
-            print(f"Converted {base_filename} to {output_filename}")
+            logging.info(f"Converted {base_filename} to {output_filename}")
         except subprocess.CalledProcessError as e:
-            print(f"PNG2ICO: Error converting {base_filename}: {e}")
+            logging.error(f"PNG2ICO: Error converting {base_filename}: {e}")
 
     """ delete_folder("temp_pngs") """
 
@@ -162,7 +166,7 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
         original_cwd = os.getcwd()
         os.chdir(repo_path)
 
-        print("--- Starting Git Sync ---")
+        logging.info("--- Starting Git Sync ---")
         # Add all files (including new icons)
         subprocess.run(["git", "add", "."], check=True)
 
@@ -217,19 +221,19 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
                     else:
                         message = f"chore: update files {time.strftime('%Y-%m-%d')}"
 
-            print(f"Committing with message: {message}")
+            logging.info(f"Committing with message: {message}")
             subprocess.run(["git", "commit", "-m", message], check=True)
             # Push changes
             subprocess.run(["git", "push"], check=True)
-            print("Successfully pushed changes to repository.")
+            logging.info("Successfully pushed changes to repository.")
         else:
-            print("No changes to commit.")
+            logging.info("No changes to commit.")
 
         os.chdir(original_cwd)
     except subprocess.CalledProcessError as e:
-        print(f"Git Error: {e}")
+        logging.error(f"Git Error: {e}")
     except Exception as e:
-        print(f"An error occurred during Git operations: {e}")
+        logging.error(f"An error occurred during Git operations: {e}")
 
 if __name__ == "__main__":
 
@@ -269,9 +273,9 @@ if __name__ == "__main__":
 
     # 1. Run the conversion
     for input_folder in input_folders:
-        print(f"\n{'#'*80}")
-        print(f"# Processing folder: {input_folder}")
-        print(f"{'#'*80}")
+        logging.info(f"\n{'#'*80}")
+        logging.info(f"# Processing folder: {input_folder}")
+        logging.info(f"{'#'*80}")
 
         current_output_folder = output_folder
 
@@ -284,7 +288,7 @@ if __name__ == "__main__":
         try:
             convert_svg_to_ico(input_folder, current_output_folder, tuple(sizes), only_changed=only_changed)
         except Exception as e:
-            print(f"WARNING occurred during processing {input_folder}: {e}")
+            logging.warning(f"WARNING occurred during processing {input_folder}: {e}")
 
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
