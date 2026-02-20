@@ -9,7 +9,7 @@ from pathlib import Path
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,32,48,64,256), only_changed:bool=False):
+def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,20,24,32,40,48,64,256), only_changed:bool=False):
     """
     Converts a folder of .svg icons to a folder of .ico icons of various sizes.
     Icons can be swapped based on a maximum size attributed to .svg icons, if their name ends with '-{size}px.svg'.
@@ -269,7 +269,7 @@ if __name__ == "__main__":
             input_folders = [os.path.join(script_dir, "svg")]
 
     output_folder = os.path.join(script_dir, "..", "Folder-Ico","ico") if not output_folder else output_folder
-    sizes = [16, 32, 48, 64, 256] if not sizes else sizes
+    sizes = [16, 20, 24, 32, 40, 48, 64, 256] if not sizes else sizes
 
     # 1. Run the conversion
     for input_folder in input_folders:
