@@ -237,8 +237,26 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
 
 if __name__ == "__main__":
 
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print("Usage: python batch_convert_to_ico.py [options]")
+        print("\nOptions:")
+        print("  --ask              Prompt for input folder, output folder, and icon sizes.")
+        print("  --changed          Only process files that have changed in git (staged, unstaged, untracked).")
+        print("  --strict <folder>  Process ONLY the specified folder (bypassing default svg_* scan).")
+        print("  --help, -h         Show this help message and exit.")
+        sys.exit(0)
+
     ask = "--ask" in sys.argv
     only_changed = "--changed" in sys.argv
+
+    strict_folder = None
+    if "--strict" in sys.argv:
+        try:
+            idx = sys.argv.index("--strict")
+            strict_folder = sys.argv[idx + 1]
+        except IndexError:
+            print("Error: --strict requires a folder argument")
+            sys.exit(1)
 
     input_folder_arg = None
     output_folder = None
@@ -255,7 +273,17 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     input_folders = []
-    if input_folder_arg:
+    if strict_folder:
+        target_path = strict_folder
+        if not os.path.isabs(target_path):
+            target_path = os.path.join(script_dir, target_path)
+        
+        if os.path.isdir(target_path):
+            input_folders = [target_path]
+        else:
+            print(f"Error: The directory '{target_path}' does not exist.")
+            sys.exit(1)
+    elif input_folder_arg:
         input_folders = [input_folder_arg]
     else:
         exclusion_list = []
