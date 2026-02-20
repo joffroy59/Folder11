@@ -46,7 +46,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
     if alt_filenames:
         print(" - " + "\n - ".join(alt_filenames))
 
+    print(f"only_changed: {only_changed}")
     if only_changed:
+        print("Filtering for changed files...")
         try:
             repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True).strip()
 
@@ -77,16 +79,20 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             print(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed.")
             base_filenames = filtered_base
         except Exception as e:
+            print(f"repo_root: {repo_root}")
             print(f"Warning: Failed to filter changed files: {e}")
 
     # Iterate through all base .svg files in the input folder
     for base_filename in base_filenames:
-        # print(base_filename)
+        print(f"Processing {base_filename}...")
+
         inputs:List[Dict[str, int | str]] = []
 
         for size in sizes:
+            print(f"Processing size: {size}")
             assumed_filename:str = base_filename[:-4] + f'-{size}px.svg'
             if assumed_filename not in alt_filenames: continue
+            print(f"assumed_filename: {assumed_filename}")
 
             alt_input_path:str = os.path.join(input_folder, assumed_filename)
 
@@ -99,15 +105,18 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         Path(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs").mkdir(parents=True, exist_ok=True)
         throughput_paths:List[str] = [os.path.join(os.path.dirname(os.path.abspath(__file__))+"/temp_pngs", f'{base_filename[:-4]}-{size_index}.png') for size_index in range(len(sizes))]
         size_index:int = 0
-        # print(inputs)
+        print(f"inputs {inputs}")
         input:Dict[str, int | str] = inputs.pop(0)
+        print(f"input {input}")
         for size_index in range(len(sizes)):
             # Go to next input if the current needed size is greater than input's maximum
             if sizes[size_index] > input['maximum_size']:
                 input:Dict[str, int | str] = inputs.pop(0)
             # print(input)
+            print(f"input[{size_index=}] {input}")
             current_size:int = sizes[size_index]
             throughput_path:str = throughput_paths[size_index]
+            print(f"current_size: {current_size}, throughput_path: {throughput_path}")
             try:
                 # magick convert -background transparent <input> -resize <maximum_size>x<maximum_size> <output>
                 subprocess.run([
@@ -117,15 +126,19 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                     '-resize', f'{current_size}x{current_size}',
                     throughput_path
                 ], check=True)
-                # print(f"Converted {base_filename} to {throughput_path}")
+                print(f"Converted {base_filename} to {throughput_path}")
             except subprocess.CalledProcessError as e:
                 print(f"SVG2PNG: Error converting {base_filename}: {e}")
             size_index += 1
 
         # Step 2: Combine throughput.png's to final output.ico using Imagemagick
+        print(f"output_folder: {output_folder}")
         Path(output_folder).mkdir(parents=True, exist_ok=True)
         output_filename:str = os.path.splitext(base_filename)[0] + '.ico'
         output_path:str = os.path.join(output_folder, output_filename)
+        # log variable output_filename and output_path
+        print(f"output_filename: {output_filename}, output_path: {output_path}")
+
         try:
             # magick convert input-1.png input-2.png ... input-n.png output.ico
             subprocess.run([
