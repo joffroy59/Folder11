@@ -277,7 +277,7 @@ if __name__ == "__main__":
         target_path = strict_folder
         if not os.path.isabs(target_path):
             target_path = os.path.join(script_dir, target_path)
-        
+
         if os.path.isdir(target_path):
             input_folders = [target_path]
         else:
