@@ -130,7 +130,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                     '-resize', f'{current_size}x{current_size}',
                     throughput_path
                 ], check=True)
-                logging.info(f"Converted {base_filename} to {throughput_path}")
+                logging.debug(f"Converted {base_filename} to {throughput_path}")
             except subprocess.CalledProcessError as e:
                 logging.error(f"SVG2PNG: Error converting {base_filename}: {e}")
             size_index += 1
@@ -151,7 +151,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                 + throughput_paths
                 + [output_path],
                 check=True)
-            logging.info(f"Converted {base_filename} to {output_filename}")
+            logging.debug(f"Converted {base_filename} to {output_filename}")
         except subprocess.CalledProcessError as e:
             logging.error(f"PNG2ICO: Error converting {base_filename}: {e}")
 
