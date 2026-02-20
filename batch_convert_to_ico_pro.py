@@ -233,6 +233,15 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
 
 if __name__ == "__main__":
 
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print("Usage: python batch_convert_to_ico_pro.py [options]")
+        print("\nOptions:")
+        print("  --ask              Prompt for input folder, output folder, and icon sizes.")
+        print("  --changed          Only process files that have changed in git (staged, unstaged, untracked).")
+        print("  --strict <folder>  Process ONLY the specified folder (bypassing default svg_* scan).")
+        print("  --help, -h         Show this help message and exit.")
+        sys.exit(0)
+
     ask = "--ask" in sys.argv
     only_changed = "--changed" in sys.argv
 
