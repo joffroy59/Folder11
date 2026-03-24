@@ -11,7 +11,7 @@
 <g filter="url(#filter1_ii_663_9052)">
 <path d="M241 198C241 204.627 235.627 210 229 210H29C22.3726 210 17 204.627 17 198V86C17 79.3726 22.3726 74 29 74H92.79C97.7649 73.9999 102.605 72.3865 106.586 69.4023L116.46 62H229C235.627 62 241 67.3726 241 74V198Z" fill="url(#paint2_linear_663_9052)"/>
 </g>
-<rect x="78.5" y="83" width="98" height="115" fill="url(#pattern0_663_9052)"/>
+<rect x="79" y="78" width="98" height="115" fill="url(#pattern0_663_9052)"/>
 <defs>
 <filter id="filter0_f_663_9052" x="-20" y="25" width="298" height="184" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
