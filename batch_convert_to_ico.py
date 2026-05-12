@@ -54,19 +54,19 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
     if only_changed:
         logging.info("Filtering for changed files...")
         try:
-            logging.info('in Folder:' + input_folder)
+            logging.debug('in Folder:' + input_folder)
             repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True).strip()
-            logging.info('in Folder repo_root:' + repo_root)
+            logging.debug('in Folder repo_root:' + repo_root)
 
             changed_paths = set()
             # Check unstaged, staged, and untracked files
             for cmd in [['git', 'diff', '--name-only'], ['git', 'diff', '--name-only', '--cached'], ['git', 'ls-files', '--others', '--exclude-standard']]:
                 output = subprocess.check_output(cmd, cwd=repo_root, text=True)
-                logging.info(output.splitlines())
+                logging.debug(output.splitlines())
                 for line in output.splitlines():
-                    logging.info(line)
+                    logging.debug(line)
                     if line.strip():
-                        logging.info('line.strip()' + os.path.join(repo_root, line.strip()))
+                        logging.debug('line.strip()' + os.path.join(repo_root, line.strip()))
                         changed_paths.add(os.path.normpath(os.path.join(repo_root, line.strip())))
 
             filtered_base = []
