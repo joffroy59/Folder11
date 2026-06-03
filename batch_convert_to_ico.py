@@ -296,6 +296,14 @@ if __name__ == "__main__":
     only_changed = "--changed" in sys.argv
     git_disable = "--git_disable" not in sys.argv
     git_fetch_only = "--git_fetch_only" not in sys.argv
+    
+    logging.info(f"ask={ask}")
+    logging.info(f"only_changed={only_changed}")
+    logging.info(f"git_disable={git_disable}")
+    logging.info(f"git_fetch_only={git_fetch_only}")
+
+
+    sys.exit(0)
 
     if not git_fetch_only:
         strict_folder = None
