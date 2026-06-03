@@ -287,14 +287,14 @@ if __name__ == "__main__":
         print("  --ask              Prompt for input folder, output folder, and icon sizes.")
         print("  --changed          Only process files that have changed in git (staged, unstaged, untracked).")
         print("  --strict <folder>  Process ONLY the specified folder (bypassing default svg_* scan).")
-        print("  --no-git           Skip git commit and push operations (default: git operations enabled).")
+        print("  --git_disable      Skip git commit and push operations (default: git operations enabled).")
         print("  --git_fetch_only   Skip git fetch and pull operations (default: git fetch disable).")
         print("  --help, -h         Show this help message and exit.")
         sys.exit(0)
 
     ask = "--ask" in sys.argv
     only_changed = "--changed" in sys.argv
-    git_enabled = "--no-git" not in sys.argv
+    git_disable = "--git_disable" not in sys.argv
     git_fetch_only = "--git_fetch_only" not in sys.argv
 
     if not git_fetch_only:
@@ -372,6 +372,6 @@ if __name__ == "__main__":
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
     repo_root = os.path.abspath(os.path.join(script_dir, ".."))
-    if not no_git:
+    if git_disable:
         git_update(git_fetch_only, not git_fetch_only , repo_root+'/Folder11')
         git_update(git_fetch_only, not git_fetch_only , repo_root+'/Folder-Ico')
