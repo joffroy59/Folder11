@@ -302,6 +302,7 @@ if __name__ == "__main__":
     logging.info(f"git_disable={git_disable}")
     logging.info(f"git_fetch_only={git_fetch_only}")
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
     if not git_fetch_only:
         strict_folder = None
@@ -325,7 +326,6 @@ if __name__ == "__main__":
             # List of icon sizes
             sizes = [s for s in map(int, input("Icon sizes (leave blank for default): ").split()) if s > 0]
 
-        script_dir = os.path.dirname(os.path.abspath(__file__))
 
         input_folders = []
         if strict_folder:
