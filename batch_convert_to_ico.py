@@ -275,9 +275,11 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
     except Exception as e:
         logging.error(f"An error occurred during Git operations: {e}")
 
-def git_update(git_fetch_and_pull, git_commit_and_push, repo_root):
-    git_fetch_and_pull(repo_root)
-    git_commit_and_push(repo_root)
+def git_update(git_fetch_only, git_enable, repo_root):
+    if git_enable:
+        git_fetch_and_pull(repo_root)
+        if not git_fetch_only:
+            git_commit_and_push(repo_root)
 
 if __name__ == "__main__":
 
@@ -378,6 +380,8 @@ if __name__ == "__main__":
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
     repo_root = os.path.abspath(os.path.join(script_dir, ".."))
-    if git_disable:
-        git_update(git_fetch_only, not git_fetch_only , repo_root+'/Folder11')
-        git_update(git_fetch_only, not git_fetch_only , repo_root+'/Folder-Ico')
+    if not git_disable:
+        git_update(git_fetch_only, not git_disable , repo_root+'/Folder11')
+        git_update(git_fetch_only, not git_disable , repo_root+'/Folder-Ico')
+
+        logging.info(f"Finish git actions \n")
