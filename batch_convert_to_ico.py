@@ -162,13 +162,48 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     """ delete_folder("temp_pngs") """
 
+
+
+
+def git_fetch_and_pull(repo_path: str):
+    """
+    Fetches and pulls from the remote repository in the specified folder.
+
+    This function temporarily changes the working directory to the given repository path and restores it afterwards.
+    Errors encountered during fetch or pull are logged but not raised.
+
+    Args:
+        repo_path (str): The path to the repository folder.
+    """
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(repo_path)
+
+        logging.info("--- Starting Git Fetch and Pull ---")
+
+        # Fetch from remote
+        subprocess.run(["git", "fetch"], check=True)
+        logging.info("Fetched from remote")
+
+        # Pull from remote
+        subprocess.run(["git", "pull"], check=True)
+        logging.info("Pulled from remote")
+
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Git fetch/pull error: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error during git fetch/pull: {e}")
+    finally:
+        os.chdir(original_cwd)
+
+
 def git_commit_and_push(repo_path: str, message: str | None = None):
     """
     Stages all changes, commits them, and pushes to the current branch.
     """
+    original_cwd = os.getcwd()
     try:
         # Change directory to the repository path
-        original_cwd = os.getcwd()
         os.chdir(repo_path)
 
         logging.info("--- Starting Git Sync ---")
@@ -240,6 +275,10 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
     except Exception as e:
         logging.error(f"An error occurred during Git operations: {e}")
 
+def git_update(git_fetch_and_pull, git_commit_and_push, repo_root):
+    git_fetch_and_pull(repo_root)
+    git_commit_and_push(repo_root)
+
 if __name__ == "__main__":
 
     if "--help" in sys.argv or "-h" in sys.argv:
@@ -248,85 +287,91 @@ if __name__ == "__main__":
         print("  --ask              Prompt for input folder, output folder, and icon sizes.")
         print("  --changed          Only process files that have changed in git (staged, unstaged, untracked).")
         print("  --strict <folder>  Process ONLY the specified folder (bypassing default svg_* scan).")
+        print("  --no-git           Skip git commit and push operations (default: git operations enabled).")
+        print("  --git_fetch_only   Skip git fetch and pull operations (default: git fetch disable).")
         print("  --help, -h         Show this help message and exit.")
         sys.exit(0)
 
     ask = "--ask" in sys.argv
     only_changed = "--changed" in sys.argv
+    git_enabled = "--no-git" not in sys.argv
+    git_fetch_only = "--git_fetch_only" not in sys.argv
 
-    strict_folder = None
-    if "--strict" in sys.argv:
-        try:
-            idx = sys.argv.index("--strict")
-            strict_folder = sys.argv[idx + 1]
-        except IndexError:
-            print("Error: --strict requires a folder argument")
-            sys.exit(1)
+    if not git_fetch_only:
+        strict_folder = None
+        if "--strict" in sys.argv:
+            try:
+                idx = sys.argv.index("--strict")
+                strict_folder = sys.argv[idx + 1]
+            except IndexError:
+                print("Error: --strict requires a folder argument")
+                sys.exit(1)
 
-    input_folder_arg = None
-    output_folder = None
-    sizes = None
+        input_folder_arg = None
+        output_folder = None
+        sizes = None
 
-    if ask:
-        # Input folder containing .svg files
-        input_folder_arg = input("Input folder (leave blank for default): ")
-        # Output folder for converted .ico files
-        output_folder = input("Output folder (leave blank for default): ")
-        # List of icon sizes
-        sizes = [s for s in map(int, input("Icon sizes (leave blank for default): ").split()) if s > 0]
+        if ask:
+            # Input folder containing .svg files
+            input_folder_arg = input("Input folder (leave blank for default): ")
+            # Output folder for converted .ico files
+            output_folder = input("Output folder (leave blank for default): ")
+            # List of icon sizes
+            sizes = [s for s in map(int, input("Icon sizes (leave blank for default): ").split()) if s > 0]
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    input_folders = []
-    if strict_folder:
-        target_path = strict_folder
-        if not os.path.isabs(target_path):
-            target_path = os.path.join(script_dir, target_path)
+        input_folders = []
+        if strict_folder:
+            target_path = strict_folder
+            if not os.path.isabs(target_path):
+                target_path = os.path.join(script_dir, target_path)
 
-        if os.path.isdir(target_path):
-            input_folders = [target_path]
+            if os.path.isdir(target_path):
+                input_folders = [target_path]
+            else:
+                print(f"Error: The directory '{target_path}' does not exist.")
+                sys.exit(1)
+        elif input_folder_arg:
+            input_folders = [input_folder_arg]
         else:
-            print(f"Error: The directory '{target_path}' does not exist.")
-            sys.exit(1)
-    elif input_folder_arg:
-        input_folders = [input_folder_arg]
-    else:
-        exclusion_list = []
-        for item in sorted(os.listdir(script_dir)):
-            item_path = os.path.join(script_dir, item)
-            if os.path.isdir(item_path):
-                if item == "svg" or (item.startswith("svg_") and item not in exclusion_list):
-                    input_folders.append(item_path)
+            exclusion_list = []
+            for item in sorted(os.listdir(script_dir)):
+                item_path = os.path.join(script_dir, item)
+                if os.path.isdir(item_path):
+                    if item == "svg" or (item.startswith("svg_") and item not in exclusion_list):
+                        input_folders.append(item_path)
 
-        if not input_folders:
-            input_folders = [os.path.join(script_dir, "svg")]
+            if not input_folders:
+                input_folders = [os.path.join(script_dir, "svg")]
 
-    output_folder = os.path.join(script_dir, "..", "Folder-Ico","ico") if not output_folder else output_folder
-    sizes = [16, 20, 24, 32, 40, 48, 64, 256] if not sizes else sizes
+        output_folder = os.path.join(script_dir, "..", "Folder-Ico","ico") if not output_folder else output_folder
+        sizes = [16, 20, 24, 32, 40, 48, 64, 256] if not sizes else sizes
 
-    # 1. Run the conversion
-    for input_folder in input_folders:
-        logging.info(f"{'#'*80}")
-        logging.info(f"# Processing folder: {input_folder}")
-        logging.info(f"{'#'*80}")
+        # 1. Run the conversion
+        for input_folder in input_folders:
+            logging.info(f"{'#'*80}")
+            logging.info(f"# Processing folder: {input_folder}")
+            logging.info(f"{'#'*80}")
 
-        current_output_folder = output_folder
+            current_output_folder = output_folder
 
-        # If we are in batch mode (no specific input arg), dynamically determine output folder
-        if input_folder_arg is None:
-            folder_name = os.path.basename(input_folder)
-            target_dir_name = folder_name.replace("svg", "ico", 1)
-            current_output_folder = os.path.join(script_dir, "..", "Folder-Ico", target_dir_name)
+            # If we are in batch mode (no specific input arg), dynamically determine output folder
+            if input_folder_arg is None:
+                folder_name = os.path.basename(input_folder)
+                target_dir_name = folder_name.replace("svg", "ico", 1)
+                current_output_folder = os.path.join(script_dir, "..", "Folder-Ico", target_dir_name)
 
-        try:
-            convert_svg_to_ico(input_folder, current_output_folder, tuple(sizes), only_changed=only_changed)
-        except Exception as e:
-            logging.warning(f"WARNING occurred during processing {input_folder}: {e}")
+            try:
+                convert_svg_to_ico(input_folder, current_output_folder, tuple(sizes), only_changed=only_changed)
+            except Exception as e:
+                logging.warning(f"WARNING occurred during processing {input_folder}: {e}")
 
-    logging.info(f"\n")
+        logging.info(f"\n")
 
     # 2. Git Commit and Push
     # We use script_dir as the base for the repo, or move up if the repo root is higher
     repo_root = os.path.abspath(os.path.join(script_dir, ".."))
-    git_commit_and_push(repo_root+'/Folder11')
-    git_commit_and_push(repo_root+'/Folder-Ico')
+    if not no_git:
+        git_update(git_fetch_only, not git_fetch_only , repo_root+'/Folder11')
+        git_update(git_fetch_only, not git_fetch_only , repo_root+'/Folder-Ico')
