@@ -5,6 +5,10 @@ from typing import Tuple, List, Dict
 import subprocess
 import time  # Import the time mdodule
 from pathlib import Path
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -275,6 +279,19 @@ def git_commit_and_push(repo_path: str, message: str | None = None):
     except Exception as e:
         logging.error(f"An error occurred during Git operations: {e}")
 
+def pause_at_end():
+    """
+    Pauses execution and waits for user to press any key.
+    On Windows: waits for any key press.
+    On other platforms: waits for Enter key.
+    """
+    if msvcrt:
+        print("\nPress any key to exit...")
+        msvcrt.getch()
+    else:
+        input("\nPress Enter to exit...")
+
+
 def git_update(git_fetch_only, git_enable, repo_root):
     if git_enable:
         git_fetch_and_pull(repo_root)
@@ -291,6 +308,7 @@ if __name__ == "__main__":
         print("  --strict <folder>  Process ONLY the specified folder (bypassing default svg_* scan).")
         print("  --git_disable      Skip git commit and push operations (default: git operations enabled).")
         print("  --git_fetch_only   Skip git fetch and pull operations (default: git fetch disable).")
+        print("  --pause            Pause at the end of process, waiting for user to press any key.")
         print("  --help, -h         Show this help message and exit.")
         sys.exit(0)
 
@@ -298,11 +316,13 @@ if __name__ == "__main__":
     only_changed = "--changed" in sys.argv
     git_disable = "--git_disable" in sys.argv
     git_fetch_only = "--git_fetch_only" in sys.argv
+    pause_enabled = "--pause" in sys.argv
 
     logging.info(f"ask={ask}")
     logging.info(f"only_changed={only_changed}")
     logging.info(f"git_disable={git_disable}")
     logging.info(f"git_fetch_only={git_fetch_only}")
+    logging.info(f"pause_enabled={pause_enabled}")
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -385,3 +405,7 @@ if __name__ == "__main__":
         git_update(git_fetch_only, not git_disable , repo_root+'/Folder-Ico')
 
         logging.info(f"Finish git actions \n")
+
+    # 3. Pause if enabled
+    if pause_enabled:
+        pause_at_end()
