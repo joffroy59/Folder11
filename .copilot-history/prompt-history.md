@@ -22,6 +22,29 @@ Added `--pause` command-line option to the batch icon conversion script. When ac
 
 ---
 
+## 2026-07-17T21:43:14Z
+
+### Environment
+- IDE: VS Code
+- Assistant: GitHub Copilot
+- Model: GPT-5.3-Codex
+
+### User Prompt
+2026-07-17 21:43:14,664 - INFO - Processing app_notebooklm_to_obsidian.svg...
+2026-07-17 21:43:14,672 - WARNING - WARNING occurred during processing C:\Dev-data\githome\github\joffroy59\Folder11\svg_perso: [WinError 2] Le fichier specifie est introuvable
+
+fix
+
+### Files Modified
+- .copilot-history/prompt-history.md
+- batch_convert_to_ico.py
+- batch_convert_to_ico_pro.py
+
+### Summary
+Added a robust ImageMagick executable check to prevent unhandled WinError 2 crashes when `magick` is missing, and fixed SVG variant suffix detection so files ending with `-NNpx.svg` are correctly recognized.
+
+---
+
 ## 2026-06-29T00:01:00Z
 
 ### Environment

@@ -3,6 +3,7 @@ import sys
 import logging
 from typing import Tuple, List, Dict
 import subprocess
+import shutil
 import time  # Import the time mdodule
 from pathlib import Path
 try:
@@ -27,7 +28,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     def ends_with_px(string:str) -> bool:
         if not string.endswith('px'): return False
-        parts:Tuple[str, ...] = string.rsplit('#', 1)
+        parts:Tuple[str, ...] = string.rsplit('-', 1)
         if len(parts) != 2: return False
         return parts[1][:-2].isdigit()
 
@@ -40,6 +41,10 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         folder.rmdir()
 
     sizes = sorted(sizes)
+
+    magick_executable = shutil.which('magick')
+    if not magick_executable:
+        raise FileNotFoundError("ImageMagick executable 'magick' was not found in PATH.")
 
     base_filenames:List[str] = sorted([filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and not any([ends_with_px(filename[:-4].lower()) for s in sizes])])
@@ -133,7 +138,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             try:
                 # magick convert -background transparent <input> -resize <maximum_size>x<maximum_size> <output>
                 subprocess.run([
-                    'magick',
+                    magick_executable,
                     '-background', 'transparent',
                     input['path'],
                     '-resize', f'{current_size}x{current_size}',
@@ -142,6 +147,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                 logging.debug(f"Converted {base_filename} to {throughput_path}")
             except subprocess.CalledProcessError as e:
                 logging.error(f"SVG2PNG: Error converting {base_filename}: {e}")
+            except FileNotFoundError as e:
+                logging.error(f"SVG2PNG: ImageMagick is unavailable: {e}")
+                return
             size_index += 1
 
         # Step 2: Combine throughput.png's to final output.ico using Imagemagick
@@ -155,7 +163,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
         try:
             # magick convert input-1.png input-2.png ... input-n.png output.ico
             subprocess.run([
-                'magick',
+                magick_executable,
                 '-background', 'transparent',]
                 + throughput_paths
                 + [output_path],
@@ -163,6 +171,9 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             logging.debug(f"Converted {base_filename} to {output_filename}")
         except subprocess.CalledProcessError as e:
             logging.error(f"PNG2ICO: Error converting {base_filename}: {e}")
+        except FileNotFoundError as e:
+            logging.error(f"PNG2ICO: ImageMagick is unavailable: {e}")
+            return
 
     """ delete_folder("temp_pngs") """
 
