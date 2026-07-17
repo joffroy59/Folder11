@@ -10,6 +10,75 @@ from pathlib import Path
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+
+def find_magick_executable() -> str | None:
+    """Locate magick executable from PATH or common Windows install locations."""
+    magick_executable = shutil.which('magick')
+    if magick_executable:
+        return magick_executable
+
+    if os.name == 'nt':
+        roots = [
+            os.environ.get('ProgramFiles'),
+            os.environ.get('ProgramFiles(x86)'),
+            os.environ.get('LOCALAPPDATA'),
+        ]
+        for root in [r for r in roots if r]:
+            base = Path(root)
+            for pattern in ("ImageMagick*", "ImageMagick*/*"):
+                for folder in base.glob(pattern):
+                    candidate = folder / 'magick.exe'
+                    if candidate.exists() and candidate.is_file():
+                        return str(candidate)
+
+    return None
+
+
+def ensure_magick_available() -> str:
+    """Return ImageMagick executable path, trying auto-install on Windows if missing."""
+    magick_executable = find_magick_executable()
+    if magick_executable:
+        return magick_executable
+
+    logging.warning("ImageMagick executable 'magick' was not found in PATH. Attempting installation...")
+
+    if os.name != 'nt':
+        raise FileNotFoundError("ImageMagick executable 'magick' was not found in PATH.")
+
+    install_attempts = [
+        [
+            'winget',
+            'install',
+            '--id', 'ImageMagick.ImageMagick',
+            '--exact',
+            '--accept-package-agreements',
+            '--accept-source-agreements',
+        ],
+        ['choco', 'install', 'imagemagick', '-y'],
+    ]
+
+    for cmd in install_attempts:
+        tool_name = cmd[0]
+        if not shutil.which(tool_name):
+            logging.info(f"Installer '{tool_name}' not found; skipping {tool_name} installation attempt.")
+            continue
+
+        try:
+            logging.info(f"Attempting ImageMagick installation with {tool_name}...")
+            subprocess.run(cmd, check=True)
+        except subprocess.CalledProcessError as exc:
+            logging.warning(f"ImageMagick install attempt via {tool_name} failed: {exc}")
+
+        magick_executable = find_magick_executable()
+        if magick_executable:
+            logging.info(f"ImageMagick installed successfully via {tool_name}.")
+            return magick_executable
+
+    raise FileNotFoundError(
+        "ImageMagick executable 'magick' was not found in PATH and automatic installation failed. "
+        "Install ImageMagick manually or ensure winget/choco is available."
+    )
+
 def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...]=(16,20,24,32,40,48,64,256), only_changed:bool=False):
     """
     Converts a folder of .svg icons to a folder of .ico icons of various sizes.
@@ -38,9 +107,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
 
     sizes = sorted(sizes)
 
-    magick_executable = shutil.which('magick')
-    if not magick_executable:
-        raise FileNotFoundError("ImageMagick executable 'magick' was not found in PATH.")
+    magick_executable = ensure_magick_available()
 
     base_filenames:List[str] = sorted([filename for filename in os.listdir(input_folder) if filename.lower().endswith('.svg')
         and not any([ends_with_px(filename[:-4].lower()) for s in sizes])])
