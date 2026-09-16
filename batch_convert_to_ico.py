@@ -377,6 +377,7 @@ if __name__ == "__main__":
         sizes = [16, 20, 24, 32, 40, 48, 64, 256] if not sizes else sizes
 
         # 1. Run the conversion
+	logging.info(f"input_folders= {input_folders}")
         for input_folder in input_folders:
             logging.info(f"{'#'*80}")
             logging.info(f"# Processing folder: {input_folder}")
