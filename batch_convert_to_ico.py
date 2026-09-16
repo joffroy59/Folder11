@@ -66,7 +66,7 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
             # Check unstaged, staged, and untracked files
             for cmd in [['git', 'diff', '--name-only'], ['git', 'diff', '--name-only', '--cached'], ['git', 'ls-files', '--others', '--exclude-standard']]:
                 output = subprocess.check_output(cmd, cwd=repo_root, text=True)
-                logging.debug(output.splitlines())
+                logging.debug(f"output.splitlines={output.splitlines()}")
                 for line in output.splitlines():
                     logging.debug(line)
                     if line.strip():
