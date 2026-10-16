@@ -57,26 +57,27 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
     logging.info(f"only_changed: {only_changed}")
     if only_changed:
         logging.info("Filtering for changed files...")
+        def normalized_path(path):
+            return os.path.normcase(os.path.realpath(path))
+
         try:
             logging.debug('in Folder:' + input_folder)
-            repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True).strip()
+            repo_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=input_folder, text=True, encoding='utf-8').strip()
             logging.debug('in Folder repo_root:' + repo_root)
 
             changed_paths = set()
             # Check unstaged, staged, and untracked files
-            for cmd in [['git', 'diff', '--name-only'], ['git', 'diff', '--name-only', '--cached'], ['git', 'ls-files', '--others', '--exclude-standard']]:
-                output = subprocess.check_output(cmd, cwd=repo_root, text=True)
-                logging.debug(f"output.splitlines={output.splitlines()}")
-                for line in output.splitlines():
-                    logging.debug(line)
-                    if line.strip():
-                        logging.debug('line.strip()' + os.path.join(repo_root, line.strip()))
-                        changed_paths.add(os.path.normpath(os.path.join(repo_root, line.strip())))
+            for cmd in [['git', 'diff', '--name-only', '-z'], ['git', 'diff', '--name-only', '--cached', '-z'], ['git', 'ls-files', '--others', '--exclude-standard', '-z']]:
+                output = subprocess.check_output(cmd, cwd=repo_root, text=True, encoding='utf-8')
+                for path in output.split('\0'):
+                    if path:
+                        changed_paths.add(normalized_path(os.path.join(repo_root, path)))
 
             filtered_base = []
             for base in base_filenames:
-                base_path = os.path.normpath(os.path.join(input_folder, base))
-                if base_path in changed_paths:
+                base_path = normalized_path(os.path.join(input_folder, base))
+                output_path = os.path.join(output_folder, os.path.splitext(base)[0] + '.ico')
+                if base_path in changed_paths or not os.path.isfile(output_path):
                     filtered_base.append(base)
                     continue
 
@@ -84,15 +85,14 @@ def convert_svg_to_ico(input_folder:str, output_folder:str, sizes:Tuple[int, ...
                 for size in sizes:
                     variant_name = base[:-4] + f'-{size}px.svg'
                     if variant_name in alt_filenames:
-                        variant_path = os.path.normpath(os.path.join(input_folder, variant_name))
+                        variant_path = normalized_path(os.path.join(input_folder, variant_name))
                         if variant_path in changed_paths:
                             filtered_base.append(base)
                             break
 
-            logging.info(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed.")
+            logging.info(f"Filtering enabled: {len(filtered_base)} of {len(base_filenames)} base files changed or missing ICO.")
             base_filenames = filtered_base
         except Exception as e:
-            logging.debug(f"repo_root: {repo_root}")
             logging.warning(f"Failed to filter changed files: {e}")
 
     # Iterate through all base .svg files in the input folder
@@ -304,7 +304,7 @@ if __name__ == "__main__":
         print("Usage: python batch_convert_to_ico.py [options]")
         print("\nOptions:")
         print("  --ask              Prompt for input folder, output folder, and icon sizes.")
-        print("  --changed          Only process files that have changed in git (staged, unstaged, untracked).")
+        print("  --changed          Process Git changes (staged, unstaged, untracked) and missing ICO files.")
         print("  --strict <folder>  Process ONLY the specified folder (bypassing default svg_* scan).")
         print("  --git_disable      Skip git commit and push operations (default: git operations enabled).")
         print("  --git_fetch_only   Skip git fetch and pull operations (default: git fetch disable).")
